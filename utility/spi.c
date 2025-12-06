@@ -31,8 +31,8 @@ __attribute__ ((optimize("O2"))) void initSPI(void)
   // Warning: if the SS pin ever becomes a LOW INPUT then SPI
   // automatically switches to Slave, so the data direction of
   // the SS pin MUST be kept as OUTPUT.
-  SPCR = (1<<SPE) | (1<<MSTR);
-  SPSR = (1<<SPI2X);  // double speed
+  SPCR = (1<<SPE) | (1<<MSTR) | (1<<SPR0);
+  SPSR = 0;
     /* Iterrupt: disable;
      * SPI: enable;
      * Data order: MSB;
