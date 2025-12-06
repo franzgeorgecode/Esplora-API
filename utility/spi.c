@@ -39,7 +39,7 @@ __attribute__ ((optimize("O2"))) void initSPI(void)
      * Master/slave: Master;
      * Clock polarity: Rising;
      * Clock [hase: Leading -> Tralling edge;
-     * Clock Rate: fclk/2 */
+     * Clock Rate: fclk/16 */
   
   SREG = backupSREG;
 }
@@ -47,7 +47,7 @@ __attribute__ ((optimize("O2"))) void initSPI(void)
 __attribute__ ((optimize("O2"))) void sendData8_SPI1(uint8_t data)
 {
   SPDR = data;
-  SPDR_TX_WAIT("nop");
+  while(!(SPSR & (1<<SPIF)));
 }
 
 __attribute__ ((optimize("O2"))) void sendData16_SPI1(uint16_t data)
@@ -56,10 +56,10 @@ __attribute__ ((optimize("O2"))) void sendData16_SPI1(uint16_t data)
   SPDR_t in = {.val = data};
   
   SPDR = in.msb;
-  SPDR_TX_WAIT("nop");
+  while(!(SPSR & (1<<SPIF)));
   
   SPDR = in.lsb;
-  SPDR_TX_WAIT("nop");
+  while(!(SPSR & (1<<SPIF)));
 }
 
 // call this function instead two calls sendData16_SPI1 can save ~2.1us
@@ -69,30 +69,30 @@ __attribute__ ((optimize("O2"))) void sendData32_SPI1(uint16_t data0, uint16_t d
   SPDR_t in1 = {.val = data1};
   
   SPDR = in0.msb;
-  SPDR_TX_WAIT("nop");
+  while(!(SPSR & (1<<SPIF)));
   
   SPDR = in0.lsb;
-  SPDR_TX_WAIT("nop");
+  while(!(SPSR & (1<<SPIF)));
   
   SPDR = in1.msb;
-  SPDR_TX_WAIT("nop");
+  while(!(SPSR & (1<<SPIF)));
   
   SPDR = in1.lsb;
-  SPDR_TX_WAIT("nop");
+  while(!(SPSR & (1<<SPIF)));
 }
 
 __attribute__ ((optimize("O2"))) void floodData16_SPI1(uint16_t data, uint16_t len)
 {
   SPDR_t in = {.val = data};
   do {
-    SPDR_TX_WAIT("");
+    while(!(SPSR & (1<<SPIF)));
     SPDR = in.msb;
     
-    SPDR_TX_WAIT("nop");
+    while(!(SPSR & (1<<SPIF)));
     SPDR = in.lsb;
   } while(--len);
 
-  SPDR_TX_WAIT("");  // dummy wait to stable SPI
+  while(!(SPSR & (1<<SPIF)));  // dummy wait to stable SPI
 }
 
 // bData - 8bit data to be loaded in SPDR
@@ -122,7 +122,7 @@ __attribute__ ((optimize("O2"))) void sendArrSPI(uint8_t *buf, uint16_t size)
 {
   for(uint8_t count = 0; count < size; count++) {
     SPDR = buf[count];
-    SPDR_TX_WAIT("nop");
+    while(!(SPSR & (1<<SPIF)));
   }
 }
 // --------------------------------------------------------- //
